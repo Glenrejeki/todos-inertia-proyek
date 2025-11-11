@@ -20,8 +20,8 @@ class TodoController extends Controller
 
         // filter status
         if ($request->filled('status') && in_array($request->status, ['done', 'pending'])) {
-            $query->when($request->status === 'done', fn($q) => $q->where('is_done', true));
-            $query->when($request->status === 'pending', fn($q) => $q->where('is_done', false));
+            $query->when($request->status === 'done', fn ($q) => $q->where('is_done', true));
+            $query->when($request->status === 'pending', fn ($q) => $q->where('is_done', false));
         }
 
         $todos = $query->latest()->paginate(20)->withQueryString();
@@ -32,11 +32,11 @@ class TodoController extends Controller
         $pending = $total - $done;
 
         return Inertia::render('Todos/Index', [
-            'todos' => $todos,
+            'todos'   => $todos,
             'filters' => $request->only('q', 'status'),
-            'stats' => [
-                'total' => $total,
-                'done' => $done,
+            'stats'   => [
+                'total'   => $total,
+                'done'    => $done,
                 'pending' => $pending,
             ],
         ]);
@@ -50,10 +50,10 @@ class TodoController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'note' => ['nullable', 'string'], // dari trix (html)
+            'title'   => ['required', 'string', 'max:255'],
+            'note'    => ['nullable', 'string'], // dari trix (html)
             'is_done' => ['nullable', 'boolean'],
-            'cover' => ['nullable', 'image', 'max:2048'],
+            'cover'   => ['nullable', 'image', 'max:2048'],
         ]);
 
         $data['user_id'] = $request->user()->id;
@@ -66,6 +66,23 @@ class TodoController extends Controller
         Todo::create($data);
 
         return redirect()->route('todos.index')->with('success', 'Todo berhasil ditambahkan');
+    }
+
+    public function show(Todo $todo)
+    {
+        $this->authorizeOwner($todo);
+
+        return Inertia::render('Todos/Show', [
+            'todo' => [
+                'id'         => $todo->id,
+                'title'      => $todo->title,
+                'note'       => $todo->note,
+                'is_done'    => (bool) $todo->is_done,
+                'cover'      => $todo->cover,
+                'created_at' => $todo->created_at?->toDateTimeString(),
+                'updated_at' => $todo->updated_at?->toDateTimeString(),
+            ],
+        ]);
     }
 
     public function edit(Todo $todo)
@@ -82,10 +99,10 @@ class TodoController extends Controller
         $this->authorizeOwner($todo);
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'note' => ['nullable', 'string'],
+            'title'   => ['required', 'string', 'max:255'],
+            'note'    => ['nullable', 'string'],
             'is_done' => ['nullable', 'boolean'],
-            'cover' => ['nullable', 'image', 'max:2048'],
+            'cover'   => ['nullable', 'image', 'max:2048'],
         ]);
 
         $data['is_done'] = $request->boolean('is_done');
