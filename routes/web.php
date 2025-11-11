@@ -1,22 +1,22 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TodoController; // ← tambahin ini
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    // kalau sudah login, ke todos
+    if (auth()->check()) {
+        return redirect()->route('todos.index');
+    }
+
+    // kalau belum login, ke halaman login
+    return redirect()->route('login');
 });
 
+// JANGAN dihapus, tapi arahkan ke todos
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return redirect()->route('todos.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -25,7 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // todos (CRUD)
+    // todos
     Route::resource('todos', TodoController::class);
 });
 
