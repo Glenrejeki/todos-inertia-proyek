@@ -39,7 +39,8 @@ export default function Create() {
             <label className="block text-sm font-medium mb-1">
               Catatan (WAJIB pakai Trix Editor)
             </label>
-            <TrixEditor value={data.note} onChange={(val) => setData('note', val)} />
+            <TrixEditor inputName="note" value={data.note} onChange={(v) => setData('note', v)} />
+
             {errors.note && <p className="text-sm text-red-500">{errors.note}</p>}
           </div>
 
